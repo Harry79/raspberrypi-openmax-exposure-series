@@ -1,31 +1,31 @@
 /*
-For the sake of simplicity, this example exits on error.
+  For the sake of simplicity, this example exits on error.
 
-Very quick OpenMAX IL explanation:
+  Very quick OpenMAX IL explanation:
 
-- There are components. Each component performs an action. For example, the
+  - There are components. Each component performs an action. For example, the
   OMX.broadcom.camera module captures images and videos and the
   OMX.broadcom.image_encoder module encodes raw data from an image into multiple
   formats. Each component has input and output ports and receives and sends
   buffers with data. The main goal is to join these components to form a
   pipeline and do complex tasks.
-- There are two ways to connect components: with tunnels or manually. The
+  - There are two ways to connect components: with tunnels or manually. The
   non-tunneled ports need to manually allocate the buffers with
   OMX_AllocateBuffer() and free them with OMX_FreeBuffer().
-- The components have states.
-- There are at least two threads: the thread that uses the application (CPU) and
+  - The components have states.
+  - There are at least two threads: the thread that uses the application (CPU) and
   the thread that is used internally by OMX to execute the components (GPU).
-- There are two types of functions: blocking and non-blocking. The blocking
+  - There are two types of functions: blocking and non-blocking. The blocking
   functions are synchronous and the non-blocking are asynchronous. Being
   asynchronous means that the function returns immediately but the result is
   returned in a later time, so you need to wait until you receive an event. This
   example uses two non-blocking functions: OMX_SendCommand and
   OMX_FillThisBuffer.
 
-Note: The camera component has two video ports: "preview" and "video". The
-"preview" port must be enabled even if you're not using it (tunnel it to the
-null_sink component) because it is used to run AGC (automatic gain control) and
-AWB (auto white balance) algorithms.
+  Note: The camera component has two video ports: "preview" and "video". The
+  "preview" port must be enabled even if you're not using it (tunnel it to the
+  null_sink component) because it is used to run AGC (automatic gain control) and
+  AWB (auto white balance) algorithms.
 */
 
 #include <stdarg.h>
@@ -41,13 +41,13 @@ AWB (auto white balance) algorithms.
 #include "dump.h"
 #include <sys/syscall.h>
 
-#define OMX_INIT_STRUCTURE(a) \
-  memset (&(a), 0, sizeof (a)); \
-  (a).nSize = sizeof (a); \
-  (a).nVersion.nVersion = OMX_VERSION; \
-  (a).nVersion.s.nVersionMajor = OMX_VERSION_MAJOR; \
-  (a).nVersion.s.nVersionMinor = OMX_VERSION_MINOR; \
-  (a).nVersion.s.nRevision = OMX_VERSION_REVISION; \
+#define OMX_INIT_STRUCTURE(a)				\
+  memset (&(a), 0, sizeof (a));				\
+  (a).nSize = sizeof (a);				\
+  (a).nVersion.nVersion = OMX_VERSION;			\
+  (a).nVersion.s.nVersionMajor = OMX_VERSION_MAJOR;	\
+  (a).nVersion.s.nVersionMinor = OMX_VERSION_MINOR;	\
+  (a).nVersion.s.nRevision = OMX_VERSION_REVISION;	\
   (a).nVersion.s.nStep = OMX_VERSION_STEP
 
 struct tm *tmp;
@@ -96,9 +96,9 @@ struct tm *tmp;
 #define CAM_DRC OMX_DynRangeExpOff
 
 /*
-Possible values:
+  Possible values:
 
-CAM_EXPOSURE
+  CAM_EXPOSURE
   OMX_ExposureControlOff
   OMX_ExposureControlAuto
   OMX_ExposureControlNight
@@ -115,7 +115,7 @@ CAM_EXPOSURE
   OMX_ExposureControlAntishake
   OMX_ExposureControlFireworks
 
-CAM_IMAGE_FILTER
+  CAM_IMAGE_FILTER
   OMX_ImageFilterNone
   OMX_ImageFilterEmboss
   OMX_ImageFilterNegative
@@ -135,18 +135,18 @@ CAM_IMAGE_FILTER
   OMX_ImageFilterColourBalance
   OMX_ImageFilterCartoon
 
-CAM_METERING
+  CAM_METERING
   OMX_MeteringModeAverage
   OMX_MeteringModeSpot
   OMX_MeteringModeMatrix
 
-CAM_MIRROR
+  CAM_MIRROR
   OMX_MirrorNone
   OMX_MirrorHorizontal
   OMX_MirrorVertical
   OMX_MirrorBoth
 
-CAM_WHITE_BALANCE
+  CAM_WHITE_BALANCE
   OMX_WhiteBalControlOff
   OMX_WhiteBalControlAuto
   OMX_WhiteBalControlSunLight
@@ -158,7 +158,7 @@ CAM_WHITE_BALANCE
   OMX_WhiteBalControlFlash
   OMX_WhiteBalControlHorizon
 
-CAM_DRC
+  CAM_DRC
   OMX_DynRangeExpOff
   OMX_DynRangeExpLow
   OMX_DynRangeExpMedium
@@ -197,21 +197,21 @@ typedef enum {
 
 //Prototypes
 OMX_ERRORTYPE EventHandler (
-    OMX_IN OMX_HANDLETYPE hComponent,
-    OMX_IN OMX_PTR pAppData,
-    OMX_IN OMX_EVENTTYPE eEvent,
-    OMX_IN OMX_U32 nData1,
-    OMX_IN OMX_U32 nData2,
-    OMX_IN OMX_PTR pEventData);
+			    OMX_IN OMX_HANDLETYPE hComponent,
+			    OMX_IN OMX_PTR pAppData,
+			    OMX_IN OMX_EVENTTYPE eEvent,
+			    OMX_IN OMX_U32 nData1,
+			    OMX_IN OMX_U32 nData2,
+			    OMX_IN OMX_PTR pEventData);
 OMX_ERRORTYPE FillBufferDone (
-    OMX_IN OMX_HANDLETYPE hComponent,
-    OMX_IN OMX_PTR pAppData,
-    OMX_IN OMX_BUFFERHEADERTYPE* pBuffer);
+			      OMX_IN OMX_HANDLETYPE hComponent,
+			      OMX_IN OMX_PTR pAppData,
+			      OMX_IN OMX_BUFFERHEADERTYPE* pBuffer);
 void wake (component_t* component, VCOS_UNSIGNED event);
 void wait (
-    component_t* component,
-    VCOS_UNSIGNED events,
-    VCOS_UNSIGNED* retrieves_events);
+	   component_t* component,
+	   VCOS_UNSIGNED events,
+	   VCOS_UNSIGNED* retrieves_events);
 void init_component (component_t* component);
 void deinit_component (component_t* component);
 void load_camera_drivers (component_t* component);
@@ -219,11 +219,11 @@ void change_state (component_t* component, OMX_STATETYPE state);
 void enable_port (component_t* component, OMX_U32 port);
 void disable_port (component_t* component, OMX_U32 port);
 void enable_encoder_output_port (
-    component_t* encoder,
-    OMX_BUFFERHEADERTYPE** encoder_output_buffer);
+				 component_t* encoder,
+				 OMX_BUFFERHEADERTYPE** encoder_output_buffer);
 void disable_encoder_output_port (
-    component_t* encoder,
-    OMX_BUFFERHEADERTYPE* encoder_output_buffer);
+				  component_t* encoder,
+				  OMX_BUFFERHEADERTYPE* encoder_output_buffer);
 void set_camera_settings (component_t* camera);
 void set_jpeg_settings (component_t* encoder);
 
@@ -261,12 +261,12 @@ void dump_cam_exp(component_t* camera)
 //Function that is called when a component receives an event from a secondary
 //thread
 OMX_ERRORTYPE event_handler (
-    OMX_IN OMX_HANDLETYPE comp,
-    OMX_IN OMX_PTR app_data,
-    OMX_IN OMX_EVENTTYPE event,
-    OMX_IN OMX_U32 data1,
-    OMX_IN OMX_U32 data2,
-    OMX_IN OMX_PTR event_data){
+			     OMX_IN OMX_HANDLETYPE comp,
+			     OMX_IN OMX_PTR app_data,
+			     OMX_IN OMX_EVENTTYPE event,
+			     OMX_IN OMX_U32 data1,
+			     OMX_IN OMX_U32 data2,
+			     OMX_IN OMX_PTR event_data){
   component_t* component = (component_t*)app_data;
 #ifdef DBG_PID
   pid_t pid = getpid();
@@ -277,90 +277,90 @@ OMX_ERRORTYPE event_handler (
 #endif
 
   switch (event){
-    case OMX_EventCmdComplete:
-      switch (data1){
-        case OMX_CommandStateSet:
-          printf ("event: %s, OMX_CommandStateSet, state: %s\n",
+  case OMX_EventCmdComplete:
+    switch (data1){
+    case OMX_CommandStateSet:
+      printf ("event: %s, OMX_CommandStateSet, state: %s\n",
               component->name, dump_OMX_STATETYPE (data2));
-          wake (component, EVENT_STATE_SET);
-          break;
-        case OMX_CommandPortDisable:
-          printf ("event: %s, OMX_CommandPortDisable, port: %d\n",
+      wake (component, EVENT_STATE_SET);
+      break;
+    case OMX_CommandPortDisable:
+      printf ("event: %s, OMX_CommandPortDisable, port: %d\n",
               component->name, data2);
-          wake (component, EVENT_PORT_DISABLE);
-          break;
-        case OMX_CommandPortEnable:
-          printf ("event: %s, OMX_CommandPortEnable, port: %d\n",
+      wake (component, EVENT_PORT_DISABLE);
+      break;
+    case OMX_CommandPortEnable:
+      printf ("event: %s, OMX_CommandPortEnable, port: %d\n",
               component->name, data2);
-          wake (component, EVENT_PORT_ENABLE);
-          break;
-        case OMX_CommandFlush:
-          printf ("event: %s, OMX_CommandFlush, port: %d\n",
+      wake (component, EVENT_PORT_ENABLE);
+      break;
+    case OMX_CommandFlush:
+      printf ("event: %s, OMX_CommandFlush, port: %d\n",
               component->name, data2);
-          wake (component, EVENT_FLUSH);
-          break;
-        case OMX_CommandMarkBuffer:
-          printf ("event: %s, OMX_CommandMarkBuffer, port: %d\n",
+      wake (component, EVENT_FLUSH);
+      break;
+    case OMX_CommandMarkBuffer:
+      printf ("event: %s, OMX_CommandMarkBuffer, port: %d\n",
               component->name, data2);
-          wake (component, EVENT_MARK_BUFFER);
-          break;
-      }
+      wake (component, EVENT_MARK_BUFFER);
       break;
-    case OMX_EventError:
-      printf ("event: %s, %s\n", component->name, dump_OMX_ERRORTYPE (data1));
-      wake (component, EVENT_ERROR);
+    }
+    break;
+  case OMX_EventError:
+    printf ("event: %s, %s\n", component->name, dump_OMX_ERRORTYPE (data1));
+    wake (component, EVENT_ERROR);
+    break;
+  case OMX_EventMark:
+    printf ("event: %s, OMX_EventMark\n", component->name);
+    wake (component, EVENT_MARK);
+    break;
+  case OMX_EventPortSettingsChanged:
+    printf ("event: %s, OMX_EventPortSettingsChanged, port: %d\n",
+	    component->name, data1);
+    wake (component, EVENT_PORT_SETTINGS_CHANGED);
+    break;
+  case OMX_EventParamOrConfigChanged:
+    printf ("event: %s, OMX_EventParamOrConfigChanged, data1: %d, data2: "
+	    "%X, event_data: %p\n", component->name, data1, data2, event_data  );
+    switch (data2){
+    case OMX_IndexParamCameraDeviceNumber:
+      printf ("event: %s, OMX_EventParamOrConfigChanged, state: %s\n",
+	      component->name, dump_OMX_INDEXTYPE (data2));
+      wake (component, EVENT_STATE_SET);
       break;
-    case OMX_EventMark:
-      printf ("event: %s, OMX_EventMark\n", component->name);
-      wake (component, EVENT_MARK);
+    case OMX_IndexConfigCameraSettings:
+      printf ("event: %s, OMX_EventParamOrConfigChanged, state: %s\n",
+	      component->name, dump_OMX_INDEXTYPE (data2));
+      wake (component, EVENT_STATE_SET);
+      dump_cam_exp(component);
+      /* OMX_CONFIG_CAMERASETTINGSTYPE* camconfig = (OMX_CONFIG_CAMERASETTING  STYPE*)event_data; */
+      /* printf("| exp    | analog gain | digital gain | lux | AWB R | AWB B   | focus |\n"); */
+      /* printf("| %6i | %5i       | %5i        | %3i | %3i   | %3i   | %3i     |\n", */
+      /*        camconfig->nExposure, camconfig->nAnalogGain, camconfig->nDig  italGain, */
+      /*        camconfig->nLux, camconfig->nRedGain, camconfig->nBlueGain, */
+      /*        camconfig->nFocusPosition); */
       break;
-    case OMX_EventPortSettingsChanged:
-      printf ("event: %s, OMX_EventPortSettingsChanged, port: %d\n",
-          component->name, data1);
-      wake (component, EVENT_PORT_SETTINGS_CHANGED);
-      break;
-    case OMX_EventParamOrConfigChanged:
-      printf ("event: %s, OMX_EventParamOrConfigChanged, data1: %d, data2: "
-          "%X, event_data: %p\n", component->name, data1, data2, event_data  );
-      switch (data2){
-      case OMX_IndexParamCameraDeviceNumber:
-        printf ("event: %s, OMX_EventParamOrConfigChanged, state: %s\n",
-                component->name, dump_OMX_INDEXTYPE (data2));
-        wake (component, EVENT_STATE_SET);
-        break;
-      case OMX_IndexConfigCameraSettings:
-        printf ("event: %s, OMX_EventParamOrConfigChanged, state: %s\n",
-                component->name, dump_OMX_INDEXTYPE (data2));
-        wake (component, EVENT_STATE_SET);
-        dump_cam_exp(component);
-        /* OMX_CONFIG_CAMERASETTINGSTYPE* camconfig = (OMX_CONFIG_CAMERASETTING  STYPE*)event_data; */
-        /* printf("| exp    | analog gain | digital gain | lux | AWB R | AWB B   | focus |\n"); */
-        /* printf("| %6i | %5i       | %5i        | %3i | %3i   | %3i   | %3i     |\n", */
-        /*        camconfig->nExposure, camconfig->nAnalogGain, camconfig->nDig  italGain, */
-        /*        camconfig->nLux, camconfig->nRedGain, camconfig->nBlueGain, */
-        /*        camconfig->nFocusPosition); */
-        break;
-      }
-      wake (component, EVENT_PARAM_OR_CONFIG_CHANGED);
-      break;
-    case OMX_EventBufferFlag:
-      printf ("event: %s, OMX_EventBufferFlag, port: %d\n",
-          component->name, data1);
-      wake (component, EVENT_BUFFER_FLAG);
-      break;
-    case OMX_EventResourcesAcquired:
-      printf ("event: %s, OMX_EventResourcesAcquired\n", component->name);
-      wake (component, EVENT_RESOURCES_ACQUIRED);
-      break;
-    case OMX_EventDynamicResourcesAvailable:
-      printf ("event: %s, OMX_EventDynamicResourcesAvailable\n",
-          component->name);
-      wake (component, EVENT_DYNAMIC_RESOURCES_AVAILABLE);
-      break;
-    default:
-      //This should never execute, just ignore
-      printf ("event: unknown (%X)\n", event);
-      break;
+    }
+    wake (component, EVENT_PARAM_OR_CONFIG_CHANGED);
+    break;
+  case OMX_EventBufferFlag:
+    printf ("event: %s, OMX_EventBufferFlag, port: %d\n",
+	    component->name, data1);
+    wake (component, EVENT_BUFFER_FLAG);
+    break;
+  case OMX_EventResourcesAcquired:
+    printf ("event: %s, OMX_EventResourcesAcquired\n", component->name);
+    wake (component, EVENT_RESOURCES_ACQUIRED);
+    break;
+  case OMX_EventDynamicResourcesAvailable:
+    printf ("event: %s, OMX_EventDynamicResourcesAvailable\n",
+	    component->name);
+    wake (component, EVENT_DYNAMIC_RESOURCES_AVAILABLE);
+    break;
+  default:
+    //This should never execute, just ignore
+    printf ("event: unknown (%X)\n", event);
+    break;
   }
   
   return OMX_ErrorNone;
@@ -368,9 +368,9 @@ OMX_ERRORTYPE event_handler (
 
 //Function that is called when a component fills a buffer with data
 OMX_ERRORTYPE fill_buffer_done (
-    OMX_IN OMX_HANDLETYPE comp,
-    OMX_IN OMX_PTR app_data,
-    OMX_IN OMX_BUFFERHEADERTYPE* buffer){
+				OMX_IN OMX_HANDLETYPE comp,
+				OMX_IN OMX_PTR app_data,
+				OMX_IN OMX_BUFFERHEADERTYPE* buffer){
   component_t* component = (component_t*)app_data;
 
   printf ("event: %s, fill_buffer_done\n", component->name);
@@ -389,12 +389,12 @@ void wake (component_t* component, VCOS_UNSIGNED event){
 }
 
 void wait (
-    component_t* component,
-    VCOS_UNSIGNED events,
-    VCOS_UNSIGNED* retrieved_events){
+	   component_t* component,
+	   VCOS_UNSIGNED events,
+	   VCOS_UNSIGNED* retrieved_events){
   VCOS_UNSIGNED set;
   if (vcos_event_flags_get (&component->flags, events | EVENT_ERROR,
-      VCOS_OR_CONSUME, VCOS_SUSPEND, &set)){
+			    VCOS_OR_CONSUME, VCOS_SUSPEND, &set)){
     fprintf (stderr, "error: vcos_event_flags_get\n");
     exit (1);
   }
@@ -424,7 +424,7 @@ void init_component (component_t* component){
 
   //Get the handle
   if ((error = OMX_GetHandle (&component->handle, component->name, component,
-      &callbacks_st))){
+			      &callbacks_st))){
     fprintf (stderr, "error: OMX_GetHandle: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -443,13 +443,13 @@ void init_component (component_t* component){
   for (i=0; i<4; i++){
     if ((error = OMX_GetParameter (component->handle, types[i], &ports_st))){
       fprintf (stderr, "error: OMX_GetParameter: %s\n",
-          dump_OMX_ERRORTYPE (error));
+	       dump_OMX_ERRORTYPE (error));
       exit (1);
     }
 
     OMX_U32 port;
     for (port=ports_st.nStartPortNumber;
-        port<ports_st.nStartPortNumber + ports_st.nPorts; port++){
+	 port<ports_st.nStartPortNumber + ports_st.nPorts; port++){
       //Disable the port
       disable_port (component, port);
       //Wait to the event
@@ -473,15 +473,15 @@ void deinit_component (component_t* component){
 
 void load_camera_drivers (component_t* component){
   /*
-  This is a specific behaviour of the Broadcom's Raspberry Pi OpenMAX IL
-  implementation module because the OMX_SetConfig() and OMX_SetParameter() are
-  blocking functions but the drivers are loaded asynchronously, that is, an
-  event is fired to signal the completion. Basically, what you're saying is:
+    This is a specific behaviour of the Broadcom's Raspberry Pi OpenMAX IL
+    implementation module because the OMX_SetConfig() and OMX_SetParameter() are
+    blocking functions but the drivers are loaded asynchronously, that is, an
+    event is fired to signal the completion. Basically, what you're saying is:
 
-  "When the parameter with index OMX_IndexParamCameraDeviceNumber is set, load
-  the camera drivers and emit an OMX_EventParamOrConfigChanged event"
+    "When the parameter with index OMX_IndexParamCameraDeviceNumber is set, load
+    the camera drivers and emit an OMX_EventParamOrConfigChanged event"
 
-  The red LED of the camera will be turned on after this call.
+    The red LED of the camera will be turned on after this call.
   */
 
   printf ("loading '%s' drivers\n", component->name);
@@ -494,7 +494,7 @@ void load_camera_drivers (component_t* component){
   cbs_st.nIndex = OMX_IndexParamCameraDeviceNumber;
   cbs_st.bEnable = OMX_TRUE;
   if ((error = OMX_SetConfig (component->handle, OMX_IndexConfigRequestCallback,
-      &cbs_st))){
+			      &cbs_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -505,9 +505,9 @@ void load_camera_drivers (component_t* component){
   //ID for the camera device
   dev_st.nU32 = 0;
   if ((error = OMX_SetParameter (component->handle,
-      OMX_IndexParamCameraDeviceNumber, &dev_st))){
+				 OMX_IndexParamCameraDeviceNumber, &dev_st))){
     fprintf (stderr, "error: OMX_SetParameter1: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -523,14 +523,14 @@ void load_camera_drivers (component_t* component){
 
 void change_state (component_t* component, OMX_STATETYPE state){
   printf ("changing '%s' state to %s\n", component->name,
-      dump_OMX_STATETYPE (state));
+	  dump_OMX_STATETYPE (state));
 
   OMX_ERRORTYPE error;
 
   if ((error = OMX_SendCommand (component->handle, OMX_CommandStateSet, state,
-      0))){
+				0))){
     fprintf (stderr, "error: OMX_SendCommand: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 }
@@ -541,9 +541,9 @@ void enable_port (component_t* component, OMX_U32 port){
   OMX_ERRORTYPE error;
 
   if ((error = OMX_SendCommand (component->handle, OMX_CommandPortEnable,
-      port, 0))){
+				port, 0))){
     fprintf (stderr, "error: OMX_SendCommand: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 }
@@ -554,16 +554,16 @@ void disable_port (component_t* component, OMX_U32 port){
   OMX_ERRORTYPE error;
 
   if ((error = OMX_SendCommand (component->handle, OMX_CommandPortDisable,
-      port, 0))){
+				port, 0))){
     fprintf (stderr, "error: OMX_SendCommand: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 }
 
 void enable_encoder_output_port (
-    component_t* encoder,
-    OMX_BUFFERHEADERTYPE** encoder_output_buffer){
+				 component_t* encoder,
+				 OMX_BUFFERHEADERTYPE** encoder_output_buffer){
   //The port is not enabled until the buffer is allocated
   OMX_ERRORTYPE error;
 
@@ -573,16 +573,16 @@ void enable_encoder_output_port (
   OMX_INIT_STRUCTURE (def_st);
   def_st.nPortIndex = 341;
   if ((error = OMX_GetParameter (encoder->handle, OMX_IndexParamPortDefinition,
-      &def_st))){
+				 &def_st))){
     fprintf (stderr, "error: OMX_GetParameter: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
   printf ("allocating %s output buffer\n", encoder->name);
   if ((error = OMX_AllocateBuffer (encoder->handle, encoder_output_buffer, 341,
-      0, def_st.nBufferSize))){
+				   0, def_st.nBufferSize))){
     fprintf (stderr, "error: OMX_AllocateBuffer: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -590,8 +590,8 @@ void enable_encoder_output_port (
 }
 
 void disable_encoder_output_port (
-    component_t* encoder,
-    OMX_BUFFERHEADERTYPE* encoder_output_buffer){
+				  component_t* encoder,
+				  OMX_BUFFERHEADERTYPE* encoder_output_buffer){
   //The port is not disabled until the buffer is released
   OMX_ERRORTYPE error;
 
@@ -618,7 +618,7 @@ void set_camera_settings (component_t* camera){
   sharpness_st.nPortIndex = OMX_ALL;
   sharpness_st.nSharpness = CAM_SHARPNESS;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonSharpness,
-      &sharpness_st))){
+			      &sharpness_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -629,7 +629,7 @@ void set_camera_settings (component_t* camera){
   contrast_st.nPortIndex = OMX_ALL;
   contrast_st.nContrast = CAM_CONTRAST;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonContrast,
-      &contrast_st))){
+			      &contrast_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -640,7 +640,7 @@ void set_camera_settings (component_t* camera){
   saturation_st.nPortIndex = OMX_ALL;
   saturation_st.nSaturation = CAM_SATURATION;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonSaturation,
-      &saturation_st))){
+			      &saturation_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -651,7 +651,7 @@ void set_camera_settings (component_t* camera){
   brightness_st.nPortIndex = OMX_ALL;
   brightness_st.nBrightness = CAM_BRIGHTNESS;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonBrightness,
-      &brightness_st))){
+			      &brightness_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -667,7 +667,7 @@ void set_camera_settings (component_t* camera){
   exposure_value_st.nSensitivity = CAM_ISO;
   exposure_value_st.bAutoSensitivity = CAM_ISO_AUTO;
   if ((error = OMX_SetConfig (camera->handle,
-      OMX_IndexConfigCommonExposureValue, &exposure_value_st))){
+			      OMX_IndexConfigCommonExposureValue, &exposure_value_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -678,7 +678,7 @@ void set_camera_settings (component_t* camera){
   exposure_control_st.nPortIndex = OMX_ALL;
   exposure_control_st.eExposureControl = CAM_EXPOSURE;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonExposure,
-      &exposure_control_st))){
+			      &exposure_control_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -689,7 +689,7 @@ void set_camera_settings (component_t* camera){
   frame_stabilisation_st.nPortIndex = OMX_ALL;
   frame_stabilisation_st.bStab = CAM_FRAME_STABILIZATION;
   if ((error = OMX_SetConfig (camera->handle,
-      OMX_IndexConfigCommonFrameStabilisation, &frame_stabilisation_st))){
+			      OMX_IndexConfigCommonFrameStabilisation, &frame_stabilisation_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -700,7 +700,7 @@ void set_camera_settings (component_t* camera){
   white_balance_st.nPortIndex = OMX_ALL;
   white_balance_st.eWhiteBalControl = CAM_WHITE_BALANCE;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonWhiteBalance,
-      &white_balance_st))){
+			      &white_balance_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -712,9 +712,9 @@ void set_camera_settings (component_t* camera){
     white_balance_gains_st.xGainR = (CAM_WHITE_BALANCE_RED_GAIN << 16)/1000;
     white_balance_gains_st.xGainB = (CAM_WHITE_BALANCE_BLUE_GAIN << 16)/1000;
     if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCustomAwbGains,
-        &white_balance_gains_st))){
+				&white_balance_gains_st))){
       fprintf (stderr, "error: OMX_SetConfig: %s\n",
-          dump_OMX_ERRORTYPE (error));
+	       dump_OMX_ERRORTYPE (error));
       exit (1);
     }
   }
@@ -725,7 +725,7 @@ void set_camera_settings (component_t* camera){
   image_filter_st.nPortIndex = OMX_ALL;
   image_filter_st.eImageFilter = CAM_IMAGE_FILTER;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonImageFilter,
-      &image_filter_st))){
+			      &image_filter_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -736,7 +736,7 @@ void set_camera_settings (component_t* camera){
   mirror_st.nPortIndex = 72;
   mirror_st.eMirror = CAM_MIRROR;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonMirror,
-      &mirror_st))){
+			      &mirror_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -747,7 +747,7 @@ void set_camera_settings (component_t* camera){
   rotation_st.nPortIndex = 72;
   rotation_st.nRotation = CAM_ROTATION;
   if ((error = OMX_SetConfig (camera->handle, OMX_IndexConfigCommonRotate,
-      &rotation_st))){
+			      &rotation_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -760,7 +760,7 @@ void set_camera_settings (component_t* camera){
   color_enhancement_st.nCustomizedU = CAM_COLOR_U;
   color_enhancement_st.nCustomizedV = CAM_COLOR_V;
   if ((error = OMX_SetConfig (camera->handle,
-      OMX_IndexConfigCommonColorEnhancement, &color_enhancement_st))){
+			      OMX_IndexConfigCommonColorEnhancement, &color_enhancement_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -770,7 +770,7 @@ void set_camera_settings (component_t* camera){
   OMX_INIT_STRUCTURE (denoise_st);
   denoise_st.bEnabled = CAM_NOISE_REDUCTION;
   if ((error = OMX_SetConfig (camera->handle,
-      OMX_IndexConfigStillColourDenoiseEnable, &denoise_st))){
+			      OMX_IndexConfigStillColourDenoiseEnable, &denoise_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -784,7 +784,7 @@ void set_camera_settings (component_t* camera){
   roi_st.xWidth = (CAM_ROI_WIDTH << 16)/100;
   roi_st.xHeight = (CAM_ROI_HEIGHT << 16)/100;
   if ((error = OMX_SetConfig (camera->handle,
-      OMX_IndexConfigInputCropPercentages, &roi_st))){
+			      OMX_IndexConfigInputCropPercentages, &roi_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -794,30 +794,30 @@ void set_camera_settings (component_t* camera){
   OMX_INIT_STRUCTURE (drc_st);
   drc_st.eMode = CAM_DRC;
   if ((error = OMX_SetConfig (camera->handle,
-      OMX_IndexConfigDynamicRangeExpansion, &drc_st))){
+			      OMX_IndexConfigDynamicRangeExpansion, &drc_st))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
   //Bayer data
   if (OMX_TRUE == RAW_BAYER)
-  {
-    //The filename is not relevant
-    char dummy[] = "dummy";
-    struct {
-      //These two fields need to be together
-      OMX_PARAM_CONTENTURITYPE uri_st;
-      char padding[5];
-    } raw;
-    OMX_INIT_STRUCTURE (raw.uri_st);
-    raw.uri_st.nSize = sizeof (raw);
-    memcpy (raw.uri_st.contentURI, dummy, 5);
-    if ((error = OMX_SetConfig (camera->handle,
-                                OMX_IndexConfigCaptureRawImageURI, &raw))){
-      fprintf (stderr, "error: OMX_SetConfig OMX_IndexConfigCaptureRawImageURI: %s\n", dump_OMX_ERRORTYPE (error));
-      exit (1);
+    {
+      //The filename is not relevant
+      char dummy[] = "dummy";
+      struct {
+	//These two fields need to be together
+	OMX_PARAM_CONTENTURITYPE uri_st;
+	char padding[5];
+      } raw;
+      OMX_INIT_STRUCTURE (raw.uri_st);
+      raw.uri_st.nSize = sizeof (raw);
+      memcpy (raw.uri_st.contentURI, dummy, 5);
+      if ((error = OMX_SetConfig (camera->handle,
+				  OMX_IndexConfigCaptureRawImageURI, &raw))){
+	fprintf (stderr, "error: OMX_SetConfig OMX_IndexConfigCaptureRawImageURI: %s\n", dump_OMX_ERRORTYPE (error));
+	exit (1);
+      }
     }
-  }
 
 }
 
@@ -832,9 +832,9 @@ void set_jpeg_settings (component_t* encoder){
   quality.nPortIndex = 341;
   quality.nQFactor = JPEG_QUALITY;
   if ((error = OMX_SetParameter (encoder->handle, OMX_IndexParamQFactor,
-      &quality))){
+				 &quality))){
     fprintf (stderr, "error: OMX_SetParameter2: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -843,9 +843,9 @@ void set_jpeg_settings (component_t* encoder){
   OMX_INIT_STRUCTURE (exif);
   exif.bEnabled = JPEG_EXIF_DISABLE;
   if ((error = OMX_SetParameter (encoder->handle, OMX_IndexParamBrcmDisableEXIF,
-      &exif))){
+				 &exif))){
     fprintf (stderr, "error: OMX_SetParameter: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -855,9 +855,9 @@ void set_jpeg_settings (component_t* encoder){
   ijg.nPortIndex = 341;
   ijg.bEnabled = JPEG_IJG_ENABLE;
   if ((error = OMX_SetParameter (encoder->handle,
-      OMX_IndexParamBrcmEnableIJGTableScaling, &ijg))){
+				 OMX_IndexParamBrcmEnableIJGTableScaling, &ijg))){
     fprintf (stderr, "error: OMX_SetParameter4: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -869,9 +869,9 @@ void set_jpeg_settings (component_t* encoder){
   thumbnail.nWidth = JPEG_THUMBNAIL_WIDTH;
   thumbnail.nHeight = JPEG_THUMBNAIL_HEIGHT;
   if ((error = OMX_SetParameter (encoder->handle, OMX_IndexParamBrcmThumbnail,
-      &thumbnail))){
+				 &thumbnail))){
     fprintf (stderr, "error: OMX_SetParameter5: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -902,7 +902,7 @@ void set_jpeg_settings (component_t* encoder){
   memcpy (item.metadata_st.nValue, value, value_length);
 
   if ((error = OMX_SetConfig (encoder->handle,
-      OMX_IndexConfigMetadataItem, &item))){
+			      OMX_IndexConfigMetadataItem, &item))){
     fprintf (stderr, "OMX_SetConfig: %s", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
@@ -915,10 +915,10 @@ void set_jpeg_settings (component_t* encoder){
 
     if (0 == strftime(value, 255, "%Y:%m:%d %H:%M:%S",
                       tmp))
-    {
-      fprintf(stderr, "localtime2");
-      exit(1);
-    }
+      {
+	fprintf(stderr, "localtime2");
+	exit(1);
+      }
 
     fprintf(stderr, "TIME: %s\n", value);
 
@@ -988,19 +988,19 @@ void dumpSensorModes(component_t* camera)
   printf("| modidx | numModes | width | height | padR | padD | cf |  max |   min |\n");
   int i;
   for (i=0; i<camsensormodes.nNumModes; ++i)
-  {
-    camsensormodes.nModeIndex = i;
-    if ((error = OMX_GetConfig (camera->handle, OMX_IndexConfigCameraSensorModes,
-                                &camsensormodes))){
-      fprintf (stderr, "error: OMX_GetParameter: %s\n",
-               dump_OMX_ERRORTYPE (error));
-      exit (1);
+    {
+      camsensormodes.nModeIndex = i;
+      if ((error = OMX_GetConfig (camera->handle, OMX_IndexConfigCameraSensorModes,
+				  &camsensormodes))){
+	fprintf (stderr, "error: OMX_GetParameter: %s\n",
+		 dump_OMX_ERRORTYPE (error));
+	exit (1);
+      }
+      printf("| %6i | %5i    |  %4i |   %4i |  %3i |  %3i | %2i |%5i | %5i |\n",
+	     camsensormodes.nModeIndex, camsensormodes.nNumModes, camsensormodes.nWidth,
+	     camsensormodes.nHeight, camsensormodes.nPaddingRight, camsensormodes.nPaddingDown,
+	     camsensormodes.eColorFormat, camsensormodes.nFrameRateMax, camsensormodes.nFrameRateMin);
     }
-    printf("| %6i | %5i    |  %4i |   %4i |  %3i |  %3i | %2i |%5i | %5i |\n",
-           camsensormodes.nModeIndex, camsensormodes.nNumModes, camsensormodes.nWidth,
-           camsensormodes.nHeight, camsensormodes.nPaddingRight, camsensormodes.nPaddingDown,
-           camsensormodes.eColorFormat, camsensormodes.nFrameRateMax, camsensormodes.nFrameRateMin);
-  }
 }
 
 int fd;
@@ -1019,10 +1019,10 @@ void openNewFile(int suf)
   char datestr[255];
   if (0 == strftime(datestr, 255, "%Y%m%d_%H%M%S",
                     tmp))
-  {
-    fprintf(stderr, "localtime2");
-    exit(1);
-  }
+    {
+      fprintf(stderr, "localtime2");
+      exit(1);
+    }
   sprintf(filename, "%s-%i.jpg", datestr, suf);
 
   //Open the file
@@ -1062,12 +1062,12 @@ void setExp(component_t* camera, int expval)
   //Setting the framerate to 0 unblocks the shutter speed from 66ms to 772ms
   //The higher the speed, the higher the capture time
   if (expval > 1000000)
-  {
-    port_def.format.video.xFramerate = (1<<16)/(expval/1000000);
-    port_def.format.video.nFrameWidth = 1920;
-    port_def.format.video.nFrameHeight = 1080;
-    port_def.format.video.nStride = 1920;
-  } else {
+    {
+      port_def.format.video.xFramerate = (1<<16)/(expval/1000000);
+      port_def.format.video.nFrameWidth = 1920;
+      port_def.format.video.nFrameHeight = 1080;
+      port_def.format.video.nStride = 1920;
+    } else {
     port_def.format.video.xFramerate = 0;
     port_def.format.video.nFrameWidth = 640;
     port_def.format.video.nFrameHeight = 480;
@@ -1107,23 +1107,23 @@ void setExp(component_t* camera, int expval)
 
   //Bayer data
   if (OMX_TRUE == RAW_BAYER)
-  {
-    //The filename is not relevant
-    char dummy[] = "dummy";
-    struct {
-      //These two fields need to be together
-      OMX_PARAM_CONTENTURITYPE uri_st;
-      char padding[5];
-    } raw;
-    OMX_INIT_STRUCTURE (raw.uri_st);
-    raw.uri_st.nSize = sizeof (raw);
-    memcpy (raw.uri_st.contentURI, dummy, 5);
-    if ((error = OMX_SetConfig (camera->handle,
-                                OMX_IndexConfigCaptureRawImageURI, &raw))){
-      fprintf (stderr, "error: OMX_SetConfig OMX_IndexConfigCaptureRawImageURI: %s\n", dump_OMX_ERRORTYPE (error));
-      exit (1);
+    {
+      //The filename is not relevant
+      char dummy[] = "dummy";
+      struct {
+	//These two fields need to be together
+	OMX_PARAM_CONTENTURITYPE uri_st;
+	char padding[5];
+      } raw;
+      OMX_INIT_STRUCTURE (raw.uri_st);
+      raw.uri_st.nSize = sizeof (raw);
+      memcpy (raw.uri_st.contentURI, dummy, 5);
+      if ((error = OMX_SetConfig (camera->handle,
+				  OMX_IndexConfigCaptureRawImageURI, &raw))){
+	fprintf (stderr, "error: OMX_SetConfig OMX_IndexConfigCaptureRawImageURI: %s\n", dump_OMX_ERRORTYPE (error));
+	exit (1);
+      }
     }
-  }
 }
 
 int main (){
@@ -1170,18 +1170,18 @@ int main (){
   OMX_INIT_STRUCTURE (sensor.sFrameSize);
   sensor.sFrameSize.nPortIndex = OMX_ALL;
   if ((error = OMX_GetParameter (camera.handle, OMX_IndexParamCommonSensorMode,
-      &sensor))){
+				 &sensor))){
     fprintf (stderr, "error: OMX_GetParameter: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
   sensor.bOneShot = OMX_TRUE;
   sensor.sFrameSize.nWidth = CAM_WIDTH;
   sensor.sFrameSize.nHeight = CAM_HEIGHT;
   if ((error = OMX_SetParameter (camera.handle, OMX_IndexParamCommonSensorMode,
-      &sensor))){
+				 &sensor))){
     fprintf (stderr, "error: OMX_SetParameter6: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -1217,9 +1217,9 @@ int main (){
   OMX_INIT_STRUCTURE (port_def);
   port_def.nPortIndex = 72;
   if ((error = OMX_GetParameter (camera.handle, OMX_IndexParamPortDefinition,
-      &port_def))){
+				 &port_def))){
     fprintf (stderr, "error: OMX_GetParameter: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
   port_def.format.image.nFrameWidth = CAM_WIDTH;
@@ -1231,9 +1231,9 @@ int main (){
   //See mmal/util/mmal_util.c, mmal_encoding_width_to_stride()
   port_def.format.image.nStride = round_up (CAM_WIDTH, 32);
   if ((error = OMX_SetParameter (camera.handle, OMX_IndexParamPortDefinition,
-      &port_def))){
+				 &port_def))){
     fprintf (stderr, "error: OMX_SetParameter7: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -1262,9 +1262,9 @@ int main (){
     /*   port_def.format.video.nStride = 640; */
   }
   if ((error = OMX_SetParameter (camera.handle, OMX_IndexParamPortDefinition,
-      &port_def))){
+				 &port_def))){
     fprintf (stderr, "error: OMX_SetParameter - "
-        "OMX_IndexParamPortDefinition: %s", dump_OMX_ERRORTYPE (error));
+	     "OMX_IndexParamPortDefinition: %s", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -1276,9 +1276,9 @@ int main (){
   OMX_INIT_STRUCTURE (port_def);
   port_def.nPortIndex = 341;
   if ((error = OMX_GetParameter (encoder.handle, OMX_IndexParamPortDefinition,
-      &port_def))){
+				 &port_def))){
     fprintf (stderr, "error: OMX_SetParameter8: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
   port_def.format.image.nFrameWidth = CAM_WIDTH;
@@ -1286,9 +1286,9 @@ int main (){
   port_def.format.image.eCompressionFormat = OMX_IMAGE_CodingJPEG;
   port_def.format.image.eColorFormat = OMX_COLOR_FormatUnused;
   if ((error = OMX_SetParameter (encoder.handle, OMX_IndexParamPortDefinition,
-      &port_def))){
+				 &port_def))){
     fprintf (stderr, "error: OMX_SetParameter9: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -1299,12 +1299,12 @@ int main (){
   printf ("configuring tunnels\n");
   if ((error = OMX_SetupTunnel (camera.handle, 72, encoder.handle, 340))){
     fprintf (stderr, "error: OMX_SetupTunnel: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
   if ((error = OMX_SetupTunnel (camera.handle, 70, null_sink.handle, 240))){
     fprintf (stderr, "error: OMX_SetupTunnel: %s\n",
-        dump_OMX_ERRORTYPE (error));
+	     dump_OMX_ERRORTYPE (error));
     exit (1);
   }
 
@@ -1391,7 +1391,7 @@ int main (){
   cameraCapturePort.nPortIndex = 72;
   cameraCapturePort.bEnabled = OMX_TRUE;
   if ((error = OMX_SetConfig (camera.handle, OMX_IndexConfigPortCapturing,
-      &cameraCapturePort))){
+			      &cameraCapturePort))){
     fprintf (stderr, "error: OMX_SetConfig: %s\n", dump_OMX_ERRORTYPE (error));
     exit (1);
   }
