@@ -237,6 +237,8 @@ const char* dump_OMX_INDEXTYPE (OMX_INDEXTYPE type){
     DUMP_CASE (OMX_IndexParamVideoInit)
     DUMP_CASE (OMX_IndexParamImageInit)
     DUMP_CASE (OMX_IndexParamOtherInit)
+    DUMP_CASE (OMX_IndexParamCameraDeviceNumber)
+    DUMP_CASE (OMX_IndexConfigCameraSettings)
     default: return "other OMX_INDEXTYPE";
   }
 }
