@@ -1,5 +1,22 @@
-openmax-jpeg
-============
+raspberrypi-openmax-exposure-series
+===================================
+
+Welcome to the raspberrypi-openmax-exposure-series project page.
+
+The goal was to capture a time series with a Raspberry Pi camera using C/C++ to have the input images which can be combined to a HDR image.
+
+I found OpenMAX is the way to go on the Raspberry Pi. Thanks to <https://github.com/gagle/raspberrypi-openmax-jpeg> I had an OpenMAX environment which was able to capture jpeg images.
+
+
+# Pushing the exposure time to the extremes
+
+The Camera Module v2 is using the Sony IMX219 sensor and is capable of capturing up to 10 s exposures according to <https://media.readthedocs.org/pdf/picamera/latest/picamera.pdf>. The highest exposure I was able to obtain is 4.2 s.
+
+Unfortunately the exposure time is depending on the current frame rate. Setting a lower frame rate allows for a longer exposure. On the other end&#x2014;the shortest exposure I got was 9 µs. See Figure [6](#org50a0ee1) for the exposure times obtained using various framerates.
+
+![img](exposure.svg "Exposure time obtained using different frame rate settings.")
+
+# openmax-jpeg
 
 #### An OpenMAX IL example that captures a JPEG image with a Raspberry Pi ####
 
