@@ -20,14 +20,26 @@ Unfortunately the exposure time is depending on the current frame rate. Setting 
 
 The RAW format is 10 bit linear encoded having values [0,1024). Black is not 0 but 64. There are two more tricky points:
 
-1.  Very dark and very light pixles do not have a high signal to noise ratio, therefore, I filtered out values below 15 and above 300.
+1.  Very dark and very light pixels do not have a high signal to noise ratio, therefore, I filtered out values below 15 and above 300.
 2.  I found the exposure time reported is off by 16 &micro;s.
 
 Taking these points into account the histograms of the different exposures align pretty well, see Figure below.
 
 ![img](blacklevel-adj4-linear.svg "Histograms of images aligned.")
 
+# Raspberry Pi camera interface
+
+I found Raspberry Pi has a great Python interface. It is a matter of a few minutes to get images captured and adjust exposure time. Still I wanted to get a closer to the underlying driver and understand the possibilities offered.
+
+OpenMAX is a great interface which offers pretty direct access to the underlying hardware. However, it does not specify how to put together a processing pipeline capturing raw images. It stays on a more abstract level how to connect different modules. It is up to an implementation to define which modules exists and which parameters they accept. The documentation for the Raspberry Pi on OMX<sub>Broadcom</sub> <http://home.nouwen.name/RaspberryPi/documentation/ilcomponents/index.html> is not really filling the gaps it is more a reference than a programming guide.
+
+Fortuantely there are various open source projects using the camera on Raspberry Pi. In the Figure below on the top row I listed various starting points I considered to extend. There are two different libraries providing some abstraction on top of OpenMAX (OMX<sub>Broadcom</sub>): mmal and iclient.
+
+![img](rpicam.svg "Low-level C/C++ camera interfaces on Raspberry Pi.")
+
 # openmax-jpeg
+
+[Original documentation from <https://github.com/gagle/raspberrypi-openmax-jpeg> left unchanged.]
 
 #### An OpenMAX IL example that captures a JPEG image with a Raspberry Pi ####
 
