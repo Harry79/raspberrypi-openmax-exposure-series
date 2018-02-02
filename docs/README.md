@@ -20,10 +20,10 @@ Unfortunately the exposure time is depending on the current frame rate. Setting 
 
 The RAW format is 10 bit linear encoded having values [0,1024). Black is not 0 but 64. There are two more tricky points:
 
-1.  Very dark and very light pixels do not have a high signal to noise ratio, therefore, I filtered out values below 15 and above 300.
-2.  I found the exposure time reported is off by 16 &micro;s.
+1.  I found the exposure time reported is off by 16 &micro;s.
+2.  Very dark pixles do not have a high signal to noise ratio, therefore, I filtered out values below 2 to reduce clutter. Pixels encoded as 1023 are potentially overexposed, these I filtered out as well.
 
-Taking these points into account the histograms of the different exposures align pretty well, see Figure below.
+Taking these points into account the histograms of the different exposures align pretty well, see Figure below. I highlighted the histogram of one of the images as a bold black line without filtering out any values. On the right one can see the overexposed pixel count sums up to a value outside the diagram. The sum of the underexposed pixels cannot be read from the diagram since we have a logarithmic scale on the x-axis.
 
 ![img](blacklevel-adj4-linear.svg "Histograms of images aligned.")
 
